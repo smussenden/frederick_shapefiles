@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-08-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+```{r}
+
+###
+# For general data science goodness
+###
+# install.packages('tidyverse')
+library(tidyverse)
+
+###
+# For spatial work in R
+###
+# install.packages('sf')
+
+library(sf)
+
+###
+# For converting geojson file into a SF dataframe and converting back to geojson
+### 
+# install.packages('geojsonsf')
+library(geojsonsf)
+```
+
+## Load, Process and Export Data
+```{r}
+###
+# Read in geojson file of Frederick precincts, and convert to SF dataframe
+###
+election_precincts <- geojson_sf("Election_Precincts.geojson")
+
+###
+# Process geojson file
+###
+
+# Take election precincts and group by the five council districts using group_by
+# Create a new geometry column that uses summarise and st_union to combine the many precincts in each council district into one big honking council district geometry shape. 
+# Convert the SF dataframe back into a proper geojson object using sf_geojson
+
+council_districts <- election_precincts %>%
+  group_by(COUNCIL_DIST) %>%
+  summarise(geometry = st_union(geometry)) %>%
+  sf_geojson()
+
+###
+# Write out the council district geojson file
+###
+
+write_file(council_districts,"council_districts.geojson")
+
+###
+# Plot it for the hell of it
+###
+plot(st_geometry(geojson_sf(council_districts)))
+
+
+```
